@@ -6,9 +6,12 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <string>
 
 #include "ShaderProgram.hpp"
 #include <glm/gtc/type_ptr.hpp>
+
+#include "Camera.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -17,7 +20,7 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int main()
+int init_glwf_imgui(GLFWwindow* window)
 {
     // glfw: initialize and configure
     // ------------------------------
@@ -32,7 +35,7 @@ int main()
 
     #pragma region GLFW_SETUP    
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -41,6 +44,8 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glfwSwapInterval(0);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -67,16 +72,35 @@ int main()
 
     #pragma endregion
 
+    return 0;
+}
+
+void cleanup()
+{
+    // glfw: terminate, clearing all previously allocated GLFW resources.
+    // ------------------------------------------------------------------
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwTerminate();
+}
+
+int main()
+{
+    GLFWwindow* window;
+    if(init_glwf_imgui(window) == -1) return -1;
+
     {
     ShaderProgram shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-         0.f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
+        0.f,  0.5f, 0.0f,  // top right
+        0.5f, -0.5f, 0.f,  // bottom right
+        -0.5f, -0.5f, 0.f,  // bottom left
     };
+
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -106,13 +130,24 @@ int main()
     // render loop
     // -----------
 
+    Camera cam(SCR_WIDTH, SCR_HEIGHT, 45);
+    cam.set_front({0, 0, 1});
+    cam.set_pos({0, 0, -1});
+
     glm::vec3 color(1, 1, 1);
+    float fov = 45;
+
+    double dt = 0;
 
     while (!glfwWindowShouldClose(window))
     {
+        float now = glfwGetTime();
         // input
         // -----
-        //processInput(window);
+        processInput(window);
+
+        cam.update_view();
+        cam.update_proj(SCR_WIDTH, SCR_HEIGHT, fov);
 
         // render
         // ------
@@ -123,12 +158,13 @@ int main()
         // draw our first triangle
         shader.bind();
         shader.set_uniform("u_color", color);
+        shader.set_uniform("u_proj_view", cam.get_proj_x_view());
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         //glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glBindVertexArray(0);
-        glUseProgram(0); // or restore your program after ImGui
+        glUseProgram(0);
 
 
         ImGui_ImplOpenGL3_NewFrame();       
@@ -138,6 +174,15 @@ int main()
 
         ImGui::Begin("Pick Color");
         ImGui::ColorEdit3("Color", glm::value_ptr(color));
+        ImGui::End();
+
+        ImGui::Begin("Camera controls");
+        ImGui::DragFloat("Fov", &fov, 0.01f, 0.0f, 180.f);
+
+        std::string fps_text = "FPS: ";
+        fps_text.append(std::to_string(1/dt));
+
+        ImGui::Text(fps_text.c_str());
         ImGui::End();
 
         ImGui::Render();
@@ -153,22 +198,17 @@ int main()
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        dt = glfwGetTime() - now;
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
     }
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    glfwTerminate();
     return 0;
 }
 

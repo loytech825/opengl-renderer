@@ -11,7 +11,7 @@
 #include "ShaderProgram.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Camera.hpp"
+#include "CameraController.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -20,7 +20,7 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int init_glwf_imgui(GLFWwindow* window)
+int init_glwf_imgui(GLFWwindow*& window)
 {
     // glfw: initialize and configure
     // ------------------------------
@@ -130,9 +130,7 @@ int main()
     // render loop
     // -----------
 
-    Camera cam(SCR_WIDTH, SCR_HEIGHT, 45);
-    cam.set_front({0, 0, 1});
-    cam.set_pos({0, 0, -1});
+    CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
 
     glm::vec3 color(1, 1, 1);
     float fov = 45;
@@ -145,9 +143,10 @@ int main()
         // input
         // -----
         processInput(window);
+        cam.update(dt, window);
 
-        cam.update_view();
-        cam.update_proj(SCR_WIDTH, SCR_HEIGHT, fov);
+        //cam.update_view();
+        //cam.update_proj(SCR_WIDTH, SCR_HEIGHT, fov);
 
         // render
         // ------
@@ -159,7 +158,7 @@ int main()
         shader.bind();
         shader.set_uniform("u_color", color);
         shader.set_uniform("u_proj_view", cam.get_proj_x_view());
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        glBindVertexArray(VAO); 
         //glDrawArrays(GL_TRIANGLES, 0, 6);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -202,13 +201,12 @@ int main()
         dt = glfwGetTime() - now;
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
-
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
 
     }
+
+    cleanup();
     return 0;
 }
 

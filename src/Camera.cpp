@@ -9,7 +9,7 @@ Camera::Camera(int screen_w, int screen_h, float fov)
     update_proj(screen_w, screen_h, fov);
 }
 
-void Camera::set_pos(const glm::vec3 &new_pos)
+/*void Camera::set_pos(const glm::vec3 &new_pos)
 {
     pos = new_pos;
     update_view();
@@ -19,7 +19,7 @@ void Camera::set_front(const glm::vec3 &new_front)
 {
     front = new_front;
     update_view();
-}
+}*/
 
 glm::mat4 Camera::get_proj_x_view()
 {

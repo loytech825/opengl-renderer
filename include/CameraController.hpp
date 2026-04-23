@@ -19,11 +19,17 @@ public:
     //movement code...
     void update(float dt, GLFWwindow* window);
 
+    //renders camera data into an imgui window
+    void display_data();
+
 private:
 
+    float m_movement_speed;
+    float m_angle_speed;
+
     //eulerian angles for calculating where camera is looking
-    float yaw;
-    float pitch;
-    float roll;
+    float m_yaw;
+    float m_pitch;
+    float m_roll;
 
 };

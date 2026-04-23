@@ -36,3 +36,8 @@ void Camera::update_view()
 {
     view = glm::lookAt(pos, pos+front, up);
 }
+
+glm::vec3 Camera::get_pos()
+{
+    return pos;
+}

@@ -12,6 +12,8 @@ public:
     void update_proj(int screen_w, int screen_h, float fov = 45.f);
     void update_view();
 
+    glm::vec3 get_pos();
+
 protected:
     glm::vec3 pos;
     glm::vec3 front;

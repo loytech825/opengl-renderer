@@ -20,6 +20,8 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
+
 int init_glwf_imgui(GLFWwindow*& window)
 {
     // glfw: initialize and configure
@@ -130,7 +132,7 @@ int main()
     // render loop
     // -----------
 
-    CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
+    //CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
 
     glm::vec3 color(1, 1, 1);
     float fov = 45;
@@ -175,14 +177,10 @@ int main()
         ImGui::ColorEdit3("Color", glm::value_ptr(color));
         ImGui::End();
 
-        ImGui::Begin("Camera controls");
-        ImGui::DragFloat("Fov", &fov, 0.01f, 0.0f, 180.f);
+        //cam data
+        cam.display_data();
 
-        std::string fps_text = "FPS: ";
-        fps_text.append(std::to_string(1/dt));
-
-        ImGui::Text(fps_text.c_str());
-        ImGui::End();
+        ImGui::ShowDebugLogWindow();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -225,4 +223,5 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+    cam.update_proj(width, height);
 }

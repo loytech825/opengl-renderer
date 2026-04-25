@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "CameraController.hpp"
+#include "Model.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -123,7 +124,7 @@ int main()
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0); 
+    glBindVertexArray(0);
 
 
     // uncomment this call to draw in wireframe polygons.
@@ -134,10 +135,15 @@ int main()
 
     //CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
 
+    Model backpack("res/models/backpack/backpack.obj");
+
     glm::vec3 color(1, 1, 1);
     float fov = 45;
 
     double dt = 0;
+
+    glEnable(GL_DEPTH_TEST);
+    //glDepthFunc(GL_LESS);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -153,16 +159,19 @@ int main()
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-        // draw our first triangle
+        // render the loaded model
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         shader.bind();
-        shader.set_uniform("u_color", color);
+        shader.set_uniform("u_model", model);
         shader.set_uniform("u_proj_view", cam.get_proj_x_view());
-        glBindVertexArray(VAO); 
-        //glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        backpack.Draw(shader);
+        //glBindVertexArray(VAO);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glBindVertexArray(0);
         glUseProgram(0);
@@ -197,6 +206,8 @@ int main()
         glfwPollEvents();
 
         dt = glfwGetTime() - now;
+        while(auto err = glGetError()) std::cout << err << "\n";
+        //std::cout << glGetError() << "\n";
     }
 
     glDeleteVertexArrays(1, &VAO);

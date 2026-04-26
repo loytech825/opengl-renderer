@@ -145,8 +145,11 @@ int main()
     glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LESS);
 
+    float render_choice;
+
     while (!glfwWindowShouldClose(window))
     {
+        while(auto err = glGetError());
         float now = glfwGetTime();
         // input
         // -----
@@ -158,7 +161,7 @@ int main()
 
         // render
         // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.f, 0.f, 0.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -169,6 +172,8 @@ int main()
         shader.bind();
         shader.set_uniform("u_model", model);
         shader.set_uniform("u_proj_view", cam.get_proj_x_view());
+        shader.set_uniform("u_camera_pos", cam.get_pos());
+        shader.set_uniform("u_choose_render", render_choice);
         backpack.Draw(shader);
         //glBindVertexArray(VAO);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -184,12 +189,27 @@ int main()
 
         ImGui::Begin("Pick Color");
         ImGui::ColorEdit3("Color", glm::value_ptr(color));
+
+        const char* choices[] = {"Normal render", "Normals", "Frag to cam", "Frag to light", "Reflection", "Specular"};
+        if(ImGui::BeginCombo("##combo", choices[(int)render_choice])){
+
+            for(int i = 0; i < 6; i++)
+            {
+                bool is_selected = render_choice == (float)i;
+                if(ImGui::Selectable(choices[i], is_selected))
+                    render_choice = (float)i;
+                if(is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+
+            ImGui::EndCombo();
+        }
         ImGui::End();
 
         //cam data
         cam.display_data();
 
-        ImGui::ShowDebugLogWindow();
+        //ImGui::ShowDebugLogWindow();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

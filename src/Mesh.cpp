@@ -3,7 +3,6 @@
 #include <iostream>
 
 
-//TODO: finish implementing(copying from learnopengl.com)
 Mesh::Mesh(const std::vector<Vertex>& vert, const std::vector<unsigned int>& ind, const std::vector<Texture>& text)
 :   vertices(vert),
     indices(ind),
@@ -14,9 +13,10 @@ Mesh::Mesh(const std::vector<Vertex>& vert, const std::vector<unsigned int>& ind
 
 Mesh::~Mesh()
 {
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteVertexArrays(1, &VAO);
+    //TODO before enabling do move/copy semantics
+    //glDeleteBuffers(1, &VBO);
+    //glDeleteBuffers(1, &EBO);
+    //glDeleteVertexArrays(1, &VAO);
 }
 
 void Mesh::Draw(ShaderProgram& shader)
@@ -46,7 +46,6 @@ void Mesh::Draw(ShaderProgram& shader)
 
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    //glDrawArrays(GL_TRIANGLES, 0, vertices.size());
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);

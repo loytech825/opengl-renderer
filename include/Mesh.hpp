@@ -7,7 +7,6 @@
 #include "ShaderProgram.hpp"
 
 
-//TODO write decostructor
 /*
 
 CURRENTLY THIS FILE IS MORE OR LESS COPY/PASTE FROM learnopengl.com

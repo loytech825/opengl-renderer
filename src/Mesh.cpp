@@ -31,12 +31,12 @@ void Mesh::Draw(ShaderProgram& shader, TextureManager& tm)
     {
         
         std::string number;
-        std::string type = textures[i].type;
+        TextureType type = tm.get_data(textures[i]).type;
 
-        if(type == "texture_diffuse") number = std::to_string(diffuse_nr++);
-        else if(type == "texture_specular") number = std::to_string(specular_nr++);
-        else if(type == "texture_normal") number = std::to_string(normal_nr++);
-        else if(type == "texture_height") number = std::to_string(height_nr++);
+        if(type == DIFFUSE) number = std::to_string(diffuse_nr++);
+        else if(type == SPECULAR) number = std::to_string(specular_nr++);
+        else if(type == NORMAL) number = std::to_string(normal_nr++);
+        else if(type == HEIGHT) number = std::to_string(height_nr++);
 
         //std::cout << "Texture: " << "u_"+type+number << "\n";
         shader.set_uniform(("u_"+type+number), (int)i);

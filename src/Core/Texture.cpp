@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
 
 TextureManager::TextureManager() {}
 
@@ -18,15 +19,17 @@ TextureManager::~TextureManager()
 
 Texture TextureManager::load_texture(const std::string &path)
 {
-    return load_texture(path, "texture.default");
+    return load_texture(path, DEFAULT);
 }
 
-Texture TextureManager::load_texture(const std::string &path, const std::string &type)
+Texture TextureManager::load_texture(const std::string &path, TextureType type)
 {
+    //everytime we load a texture, this counter increases, so we get a unique id
+    static Texture current_text = 0;
 
     std::cout << "Loading " << path << "...\n";
 
-    Texture texture;
+    TextureData texture;
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
      // set the texture wrapping parameters
@@ -39,11 +42,11 @@ Texture TextureManager::load_texture(const std::string &path, const std::string 
     int width, height, nrChannels;
 
     //if the texture is already loaded, return it
-    auto it = m_loaded_textures.find(path); 
+    auto it = std::find_if(m_loaded_textures.begin(), m_loaded_textures.end(), [&path](const auto& pair){ return pair.second.path == path.substr(path.find_last_of('/'));}); 
     if(it != m_loaded_textures.end())
     {   
         std::cout << path << " already loaded!\n";
-        return it->second;
+        return it->first;
     }
 
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
@@ -65,29 +68,46 @@ Texture TextureManager::load_texture(const std::string &path, const std::string 
     //DEBUG: std::cout << path << ": " << width << "x" << height << ", " << nrChannels << "\n";
     texture.path = path.substr(path.find_last_of('/'));
 
-    m_loaded_textures.emplace(path, texture);
+    m_loaded_textures.emplace(current_text, texture);
 
-    return texture;
+    return current_text++;
 }
 
 void TextureManager::unload_texture(Texture &texture)
 {
-    auto it = m_loaded_textures.find(texture.path);
+    auto it = m_loaded_textures.find(texture);
     //texture not found = not loaded
     if(it == m_loaded_textures.end()) return;
 
-    std::cout << "Unloading " << texture.path << "!\n";
+    auto& data = it->second;
 
-    glDeleteTextures(1, &texture.id);
-    texture.id = -1;
+    std::cout << "Unloading " << data.path << "!\n";
+
+    glDeleteTextures(1, &data.id);
+    texture = -1;
     m_loaded_textures.erase(it);
 }
 
-bool TextureManager::bind_texture(const Texture& texture, unsigned int unit)
+bool TextureManager::bind_texture(Texture texture, unsigned int unit)
 {
-    if(texture.id == -1) return false;
+    auto it = m_loaded_textures.find(texture);
+    //texture not found = not loaded
+    if(it == m_loaded_textures.end()) return false;
 
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glBindTexture(GL_TEXTURE_2D, it->second.id);
     return true;
+}
+
+//fix err state
+TextureData TextureManager::get_data(Texture texture)
+{
+    auto it = m_loaded_textures.find(texture);
+    if(it == m_loaded_textures.end())
+    {
+        TextureData d;
+        d.id = -1;
+        return d;
+    }
+    return it->second;
 }

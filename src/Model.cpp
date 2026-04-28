@@ -138,25 +138,25 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
         // normal: texture_normalN
 
     // 1. diffuse mapss
-    std::vector<Texture> diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+    std::vector<Texture> diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, DIFFUSE);
     textures.insert(textures.end(), diffuse_maps.begin(), diffuse_maps.end());
 
     // 2. specular maps
-    std::vector<Texture> specular_maps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
+    std::vector<Texture> specular_maps = load_material_textures(material, aiTextureType_SPECULAR, SPECULAR);
     textures.insert(textures.end(), specular_maps.begin(), specular_maps.end());
 
     // 3. normal maps
-    std::vector<Texture> normal_maps = load_material_textures(material, aiTextureType_NORMALS, "texture_normal");
+    std::vector<Texture> normal_maps = load_material_textures(material, aiTextureType_NORMALS, NORMAL);
     textures.insert(textures.end(), normal_maps.begin(), normal_maps.end());
 
     // 4. height maps
-    std::vector<Texture> height_maps = load_material_textures(material, aiTextureType_HEIGHT, "texture_height");
+    std::vector<Texture> height_maps = load_material_textures(material, aiTextureType_HEIGHT, HEIGHT);
     textures.insert(textures.end(), height_maps.begin(), height_maps.end());
 
     return Mesh(vertices, indices, textures);
 }
 
-std::vector<Texture> Model::load_material_textures(aiMaterial *mat, aiTextureType type, std::string type_name)
+std::vector<Texture> Model::load_material_textures(aiMaterial *mat, aiTextureType type, TextureType type_name)
 {
     std::vector<Texture> textures;
 

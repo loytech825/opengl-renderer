@@ -2,16 +2,25 @@
 #include "Core/Texture.hpp"
 #include <iostream>
 
-Model::Model(const std::string &path)
+Model::Model(const std::string &path, TextureManager& tm)
+:   m_texture_manager(tm)
 {
     load_model(path);
+}
+
+Model::~Model()
+{
+    for(auto& texture : textures_loaded)
+    {
+        m_texture_manager.unload_texture(texture);
+    }
 }
 
 void Model::Draw(ShaderProgram &shader)
 {
     for(auto& mesh : meshes)
     {
-        mesh.Draw(shader);
+        mesh.Draw(shader, m_texture_manager);
     }
 }
 
@@ -156,29 +165,9 @@ std::vector<Texture> Model::load_material_textures(aiMaterial *mat, aiTextureTyp
         aiString str;
         mat->GetTexture(type, i, &str);
 
-        //check if texture was loaded before
-        bool skip = false;
-        for(unsigned int j = 0; j < textures_loaded.size(); j++)
-        {
-            if(std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
-            {
-                textures.push_back(textures_loaded[j]);
-                skip = true;
-                break;
-            }
-        }
-        //if texture not yet loaded
-        if(!skip)
-        {
-            //TODO: figure out a texutre struct layout 
-            Texture texture;
-            texture.id = load_texture(directory + "/" + str.C_Str());
-            texture.type = type_name;
-            texture.path = str.C_Str();
-            //TODO: figure out a way to link these (data duplication)
-            textures.push_back(texture);
-            textures_loaded.push_back(texture);
-        }
+        auto texture = m_texture_manager.load_texture(directory + "/" + str.C_Str(), type_name);
+        textures_loaded.push_back(texture);
+        textures.push_back(texture);
     }
     return textures;
 }

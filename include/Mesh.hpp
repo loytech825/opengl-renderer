@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ShaderProgram.hpp"
+#include "Texture.hpp"
 
 
 /*
@@ -30,12 +31,6 @@ struct Vertex
 };
 
 //this will 100% need a rewrite
-struct Texture
-{
-    unsigned int id;
-    std::string type;
-    std::string path;
-};
 
 /*
 
@@ -49,7 +44,7 @@ public:
 
     Mesh(const std::vector<Vertex>& vert, const std::vector<unsigned int>& ind, const std::vector<Texture>& text);
     ~Mesh();
-    void Draw(ShaderProgram& shader);
+    void Draw(ShaderProgram& shader, TextureManager& tm);
 
 
     //maybe would be good to store vertices of all meshes contiguously

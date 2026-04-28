@@ -135,7 +135,8 @@ int main()
 
     //CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
 
-    Model backpack("res/models/backpack/backpack.obj");
+    TextureManager tm;
+    Model backpack("res/models/backpack/backpack.obj", tm);
 
     glm::vec3 color(1, 1, 1);
     float fov = 45;
@@ -146,6 +147,7 @@ int main()
     //glDepthFunc(GL_LESS);
 
     float render_choice;
+    std::cout << sizeof(std::vector<Vertex>::iterator) << "\t" << sizeof(Vertex*) << "\t" << sizeof(unsigned int) << "\n";
 
     while (!glfwWindowShouldClose(window))
     {

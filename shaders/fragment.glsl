@@ -33,6 +33,7 @@ void main()
    //specular
    vec3 specular_base = texture(u_texture_specular0, TexCoords).xyz;
    vec3 frag_to_cam = normalize(u_camera_pos - frag_pos);
+   //reflect need incident vector and so we need the -
    vec3 reflected_light = reflect(-frag_to_light, frag_normal);
 
    float spec = pow(max(dot(frag_to_cam, reflected_light), 0.0f), 32);

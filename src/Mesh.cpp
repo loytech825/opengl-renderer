@@ -19,7 +19,7 @@ Mesh::~Mesh()
     //glDeleteVertexArrays(1, &VAO);
 }
 
-void Mesh::Draw(ShaderProgram& shader)
+void Mesh::Draw(ShaderProgram& shader, TextureManager& tm)
 {
     unsigned int diffuse_nr = 0;
     unsigned int specular_nr = 0;
@@ -29,7 +29,6 @@ void Mesh::Draw(ShaderProgram& shader)
     shader.bind();
     for(unsigned int i = 0; i < textures.size(); i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i);
         
         std::string number;
         std::string type = textures[i].type;
@@ -41,7 +40,7 @@ void Mesh::Draw(ShaderProgram& shader)
 
         //std::cout << "Texture: " << "u_"+type+number << "\n";
         shader.set_uniform(("u_"+type+number), (int)i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        tm.bind_texture(textures[i], i);
     }
 
     glBindVertexArray(VAO);

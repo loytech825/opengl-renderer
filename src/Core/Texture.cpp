@@ -27,7 +27,7 @@ Texture TextureManager::load_texture(const std::string &path, TextureType type)
     //everytime we load a texture, this counter increases, so we get a unique id
     static Texture current_text = 0;
 
-    std::cout << "Loading " << path << "...\n";
+    //std::cout << "Loading " << path << "...\t" << type << "\n";
 
     TextureData texture;
     glGenTextures(1, &texture.id);
@@ -45,7 +45,7 @@ Texture TextureManager::load_texture(const std::string &path, TextureType type)
     auto it = std::find_if(m_loaded_textures.begin(), m_loaded_textures.end(), [&path](const auto& pair){ return pair.second.path == path.substr(path.find_last_of('/'));}); 
     if(it != m_loaded_textures.end())
     {   
-        std::cout << path << " already loaded!\n";
+        //std::cout << path << " already loaded!\n";
         return it->first;
     }
 
@@ -67,6 +67,7 @@ Texture TextureManager::load_texture(const std::string &path, TextureType type)
 
     //DEBUG: std::cout << path << ": " << width << "x" << height << ", " << nrChannels << "\n";
     texture.path = path.substr(path.find_last_of('/'));
+    texture.type = type;
 
     m_loaded_textures.emplace(current_text, texture);
 

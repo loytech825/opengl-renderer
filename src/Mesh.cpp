@@ -30,16 +30,18 @@ void Mesh::Draw(ShaderProgram& shader, TextureManager& tm)
     for(unsigned int i = 0; i < textures.size(); i++)
     {
         
-        std::string number;
+        //std::cout << textures[i] << ": " << tm.get_data(textures[i]).id << ", type: " << tm.get_data(textures[i]).type << ", " << tm.get_data(textures[i]).path << "\n";
+
+        std::string location;
         TextureType type = tm.get_data(textures[i]).type;
 
-        if(type == DIFFUSE) number = std::to_string(diffuse_nr++);
-        else if(type == SPECULAR) number = std::to_string(specular_nr++);
-        else if(type == NORMAL) number = std::to_string(normal_nr++);
-        else if(type == HEIGHT) number = std::to_string(height_nr++);
+        if(type == DIFFUSE) location = "u_texture_diffuse" + std::to_string(diffuse_nr++);
+        else if(type == SPECULAR) location = "u_texture_specular" + std::to_string(specular_nr++);
+        else if(type == NORMAL) location = "u_texture_normal" + std::to_string(normal_nr++);
+        else if(type == HEIGHT) location = "u_texture_height" + std::to_string(height_nr++);
 
         //std::cout << "Texture: " << "u_"+type+number << "\n";
-        shader.set_uniform(("u_"+type+number), (int)i);
+        shader.set_uniform((location), (int)i);
         tm.bind_texture(textures[i], i);
     }
 
@@ -48,6 +50,7 @@ void Mesh::Draw(ShaderProgram& shader, TextureManager& tm)
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
+    //std::cout << "\n\n\n";
 }
 
 void Mesh::setup_mesh()

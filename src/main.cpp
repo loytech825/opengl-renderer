@@ -138,7 +138,7 @@ int main()
     TextureManager tm;
     Model backpack("res/models/backpack/backpack.obj", tm);
 
-    glm::vec3 color(1, 1, 1);
+    glm::vec3 light_dir(1, 1, 1);
     float fov = 45;
 
     double dt = 0;
@@ -173,9 +173,15 @@ int main()
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         shader.bind();
         shader.set_uniform("u_model", model);
+
+        glm::mat3 normal_matrix = glm::transpose(glm::inverse(model));
+        shader.set_uniform("u_normal_matrix", normal_matrix);   
+
         shader.set_uniform("u_proj_view", cam.get_proj_x_view());
         shader.set_uniform("u_camera_pos", cam.get_pos());
         shader.set_uniform("u_choose_render", render_choice);
+        glm::vec3 light_dir_n = glm::normalize(light_dir);
+        shader.set_uniform("u_light_dir", light_dir_n);
         backpack.Draw(shader);
         //glBindVertexArray(VAO);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -189,8 +195,8 @@ int main()
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, NULL, ImGuiDockNodeFlags_PassthruCentralNode);
 
-        ImGui::Begin("Pick Color");
-        ImGui::ColorEdit3("Color", glm::value_ptr(color));
+        ImGui::Begin("Light Dir");
+        ImGui::DragFloat3("Dir", glm::value_ptr(light_dir), 1, -1, 1);
 
         const char* choices[] = {"Normal render", "Normals", "Frag to cam", "Frag to light", "Reflection", "Specular"};
         if(ImGui::BeginCombo("##combo", choices[(int)render_choice])){

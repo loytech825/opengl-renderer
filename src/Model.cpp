@@ -131,12 +131,6 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
     //each mesh has a single material
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-    //need a naming convention for variables in shader so
-    //we can set them dynamically
-        // diffuse: texture_diffuseN
-        // specular: texture_specularN
-        // normal: texture_normalN
-
     // 1. diffuse mapss
     std::vector<Texture> diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, DIFFUSE);
     textures.insert(textures.end(), diffuse_maps.begin(), diffuse_maps.end());
@@ -150,7 +144,8 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
     textures.insert(textures.end(), normal_maps.begin(), normal_maps.end());
 
     // 4. height maps
-    std::vector<Texture> height_maps = load_material_textures(material, aiTextureType_HEIGHT, HEIGHT);
+    // for some reason .obj gets normals from here
+    std::vector<Texture> height_maps = load_material_textures(material, aiTextureType_HEIGHT, NORMAL);
     textures.insert(textures.end(), height_maps.begin(), height_maps.end());
 
     return Mesh(vertices, indices, textures);
@@ -164,6 +159,8 @@ std::vector<Texture> Model::load_material_textures(aiMaterial *mat, aiTextureTyp
     {
         aiString str;
         mat->GetTexture(type, i, &str);
+
+        //std::cout << directory + "/" + str.C_Str() << ", " << type_name;
 
         auto texture = m_texture_manager.load_texture(directory + "/" + str.C_Str(), type_name);
         textures_loaded.push_back(texture);

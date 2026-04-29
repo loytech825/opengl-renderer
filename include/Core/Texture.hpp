@@ -41,6 +41,8 @@ public:
     //simply unloads the texture and invalidates the passed object
     //we need to update params like id to -1
     void unload_texture(Texture& texture);
+    //unloads all textures
+    void unload_all();
 
     bool bind_texture(Texture texture, unsigned int unit);
 

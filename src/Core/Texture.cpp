@@ -88,6 +88,16 @@ void TextureManager::unload_texture(Texture &texture)
     m_loaded_textures.erase(it);
 }
 
+void TextureManager::unload_all()
+{
+    for(auto& [id, data] : m_loaded_textures)
+    {
+        glDeleteTextures(1, &data.id);
+    }
+
+    m_loaded_textures.clear();
+}
+
 bool TextureManager::bind_texture(Texture texture, unsigned int unit)
 {
     auto it = m_loaded_textures.find(texture);

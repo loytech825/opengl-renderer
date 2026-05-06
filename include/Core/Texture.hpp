@@ -27,6 +27,9 @@ struct TextureData
     unsigned int id;
     TextureType type;
     std::string path;
+
+    //dont think we need this but good to have
+    unsigned int W, H;
 };
 
 class TextureManager
@@ -47,6 +50,8 @@ public:
     bool bind_texture(Texture texture, unsigned int unit);
 
     TextureData get_data(Texture texture);
+
+    void draw_info_windw();
 
 private:
     std::unordered_map<Texture, TextureData> m_loaded_textures;

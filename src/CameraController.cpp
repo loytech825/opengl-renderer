@@ -13,44 +13,43 @@ CameraController::CameraController(int screen_w, int screen_h, float fov, const 
     update_view();
 }
 
-void CameraController::update(float dt, GLFWwindow *window)
+void CameraController::update(float dt)
 {
     float speed = m_movement_speed*dt;
     float angle_speed = m_angle_speed*dt;
 
-    int forward = glfwGetKey(window, GLFW_KEY_W);
-    int backward = glfwGetKey(window, GLFW_KEY_S);
+    bool forward = ImGui::IsKeyDown(ImGuiKey_W);
+    bool backward = ImGui::IsKeyDown(ImGuiKey_S);
 
-    int right = glfwGetKey(window, GLFW_KEY_D);
-    int left = glfwGetKey(window, GLFW_KEY_A);
+    bool right = ImGui::IsKeyDown(ImGuiKey_D);
+    bool left = ImGui::IsKeyDown(ImGuiKey_A);
 
     int front_back = 0;
     int right_left = 0;
 
-    if(forward == GLFW_PRESS) front_back = 1;
-    else if(backward == GLFW_PRESS) front_back = -1;
+    if(forward) front_back = 1;
+    else if(backward) front_back = -1;
 
-    if(right == GLFW_PRESS) right_left = 1;
-    else if(left == GLFW_PRESS) right_left = -1;
+    if(right) right_left = 1;
+    else if(left) right_left = -1;
 
     pos += speed * front_back * front;
     pos += speed * right_left * (glm::cross(front, up));
 
+    int yaw_right = ImGui::IsKeyDown(ImGuiKey_RightArrow);
+    int yaw_left = ImGui::IsKeyDown(ImGuiKey_LeftArrow);
 
-    int yaw_right = glfwGetKey(window, GLFW_KEY_RIGHT);
-    int yaw_left = glfwGetKey(window, GLFW_KEY_LEFT);
-
-    int pitch_up = glfwGetKey(window, GLFW_KEY_UP);
-    int pitch_down = glfwGetKey(window, GLFW_KEY_DOWN);
+    int pitch_up = ImGui::IsKeyDown(ImGuiKey_UpArrow);
+    int pitch_down = ImGui::IsKeyDown(ImGuiKey_DownArrow);
 
     int dyaw = 0;
     int dpitch = 0;
 
-    if(yaw_right == GLFW_PRESS) dyaw = 1;
-    else if(yaw_left == GLFW_PRESS) dyaw = -1;
+    if(yaw_right) dyaw = 1;
+    else if(yaw_left) dyaw = -1;
 
-    if(pitch_up == GLFW_PRESS) dpitch = 1;
-    else if(pitch_down == GLFW_PRESS) dpitch = -1;
+    if(pitch_up) dpitch = 1;
+    else if(pitch_down) dpitch = -1;
     
     m_yaw += angle_speed*dyaw;
     m_pitch += angle_speed*dpitch;

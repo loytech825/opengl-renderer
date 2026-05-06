@@ -14,14 +14,14 @@
 #include "CameraController.hpp"
 #include "Model.hpp"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+#include "Framebuffer.hpp"
+
+void scene_resize(int width, int height, CameraController& cam, Framebuffer& fbuffer);
 void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
-CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
 
 int init_glwf_imgui(GLFWwindow*& window)
 {
@@ -46,7 +46,6 @@ int init_glwf_imgui(GLFWwindow*& window)
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glfwSwapInterval(0);
 
@@ -95,46 +94,7 @@ int main()
 
     {
     ShaderProgram shader("shaders/vertex.glsl", "shaders/fragment.glsl");
-    
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
-    float vertices[] = {
-        0.f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.f,  // bottom right
-        -0.5f, -0.5f, 0.f,  // bottom left
-    };
-
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
-
-
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    // render loop
-    // -----------
-
-    //CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
-
+ 
     TextureManager tm;
     Model backpack("res/models/backpack/backpack.obj", tm);
 
@@ -148,6 +108,11 @@ int main()
 
     float render_choice;
     std::cout << sizeof(std::vector<Vertex>::iterator) << "\t" << sizeof(Vertex*) << "\t" << sizeof(unsigned int) << "\n";
+    //FRAMEBUFFER for rendering to imguiwindow
+    Framebuffer fbuffer(SCR_WIDTH, SCR_HEIGHT);
+    CameraController cam(SCR_WIDTH, SCR_HEIGHT, 45);
+
+    ImVec2 scene_size{SCR_WIDTH, SCR_HEIGHT};
 
     while (!glfwWindowShouldClose(window))
     {
@@ -156,13 +121,13 @@ int main()
         // input
         // -----
         processInput(window);
-        cam.update(dt, window);
 
         //cam.update_view();
         //cam.update_proj(SCR_WIDTH, SCR_HEIGHT, fov);
 
         // render
         // ------
+        fbuffer.bind();
         glClearColor(0.f, 0.f, 0.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -183,17 +148,41 @@ int main()
         glm::vec3 light_dir_n = glm::normalize(light_dir);
         shader.set_uniform("u_light_dir", light_dir_n);
         backpack.Draw(shader);
-        //glBindVertexArray(VAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glBindVertexArray(0);
         glUseProgram(0);
 
 
+        //reset framebuffer for imgui rendering
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClearColor(0.f, 0.f, 0.f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         ImGui_ImplOpenGL3_NewFrame();       
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(0, NULL, ImGuiDockNodeFlags_PassthruCentralNode);
+
+
+        ImGui::SetNextWindowSize({SCR_WIDTH, SCR_HEIGHT});
+        ImGui::Begin("Scene");
+
+        ImVec2 new_scene_size = ImGui::GetContentRegionAvail();
+
+        if(!(new_scene_size.x == scene_size.x && new_scene_size.y == scene_size.y))
+        {
+            scene_resize(new_scene_size.x, new_scene_size.y, cam, fbuffer);
+            scene_size = new_scene_size;
+        }
+        ImGui::Image((ImTextureRef)fbuffer.get_texture_handle(), scene_size, {0, 1}, {1, 0});
+
+        if(ImGui::IsWindowFocused())
+            //maybe set flag and update before all rendering code
+            cam.update(dt);
+
+
+
+        ImGui::End();
 
         ImGui::Begin("Light Dir");
         ImGui::DragFloat3("Dir", glm::value_ptr(light_dir), 1, -1, 1);
@@ -216,8 +205,11 @@ int main()
 
         //cam data
         cam.display_data();
+        //texture data
+        tm.draw_info_windw();
 
         //ImGui::ShowDebugLogWindow();
+        //ImGui::ShowDemoWindow();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -237,10 +229,6 @@ int main()
         while(auto err = glGetError()) std::cout << err << "\n";
         //std::cout << glGetError() << "\n";
     }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-
     }
 
     cleanup();
@@ -257,10 +245,11 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void scene_resize(int width, int height, CameraController& cam, Framebuffer& fbuffer)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
     cam.update_proj(width, height);
+    fbuffer.resize(width, height);
 }

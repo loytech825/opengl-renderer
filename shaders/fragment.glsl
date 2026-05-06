@@ -24,7 +24,7 @@ uniform float u_choose_render;
 //PHONG LIGHTING
 vec3 light_color = vec3(1, 1, 1);
 
-float ambient_strength = 0.1;
+float ambient_strength = 0.1f;
 float diffuse_strength = 1.f;
 
 /*
@@ -37,6 +37,7 @@ void main()
    vec3 object_color = texture(u_texture_diffuse0, fs_in.tex_coords).xyz;
 
    //read from texture
+   //texture stored as 0.5*vector+0.5 so it gets mapped from [-1, 1] to [0, 1]
    vec3 texture_normal = texture(u_texture_normal0, fs_in.tex_coords).xyz;
    texture_normal =  normalize(2*texture_normal-1);
    //--------------------------------------------------------------------------------

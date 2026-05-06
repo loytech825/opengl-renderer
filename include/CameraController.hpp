@@ -17,7 +17,7 @@ public:
     */
     CameraController(int screen_w, int screen_h, float fov, const glm::vec3& pos = {0, 0, 0});
     //movement code...
-    void update(float dt, GLFWwindow* window);
+    void update(float dt);
 
     //renders camera data into an imgui window
     void display_data();

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <filesystem>
 #include <algorithm>
+#include <imgui.h>
 
 TextureManager::TextureManager() {}
 
@@ -55,6 +56,8 @@ Texture TextureManager::load_texture(const std::string &path, TextureType type)
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        texture.W = width;
+        texture.H = height; 
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -121,4 +124,23 @@ TextureData TextureManager::get_data(Texture texture)
         return d;
     }
     return it->second;
+}
+
+void TextureManager::draw_info_windw()
+{
+    ImGui::Begin("Textures");
+    if(ImGui::TreeNode("Textures loaded"))
+    {
+        ImGui::BeginChild("TextureList", {0, 0}, ImGuiChildFlags_None, ImGuiWindowFlags_HorizontalScrollbar);
+        for(const auto& [id, t] : m_loaded_textures)
+        {
+            std::string text = std::to_string(t.id) + "(" + std::to_string(t.W) + "x" 
+                            + std::to_string(t.H) + "): " + t.path;
+            ImGui::Text("%s", text.c_str());
+        }
+        ImGui::EndChild();
+
+        ImGui::TreePop();
+    }
+    ImGui::End();
 }

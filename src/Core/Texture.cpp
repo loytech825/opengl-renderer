@@ -126,7 +126,7 @@ TextureData TextureManager::get_data(Texture texture)
     return it->second;
 }
 
-void TextureManager::draw_info_windw()
+void TextureManager::draw_info_window()
 {
     ImGui::Begin("Textures");
     if(ImGui::TreeNode("Textures loaded"))

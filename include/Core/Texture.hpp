@@ -51,7 +51,7 @@ public:
 
     TextureData get_data(Texture texture);
 
-    void draw_info_windw();
+    void draw_info_window();
 
 private:
     std::unordered_map<Texture, TextureData> m_loaded_textures;

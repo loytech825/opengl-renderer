@@ -24,9 +24,13 @@ private:
     void resize(unsigned int w, unsigned int h);
 
     ShaderProgram m_shader;
+    ShaderProgram m_post_process;
+
     TextureManager m_texture_manager;
 
     Framebuffer m_framebuffer;
+    //before post process
+    Framebuffer m_intermediate;
     CameraController m_cam;
 
     bool m_running;
@@ -38,4 +42,8 @@ private:
     glm::vec3 light_dir;
 
     bool scene_focused;
+
+    //post process
+    unsigned int VBO;
+    unsigned int VAO;
 };

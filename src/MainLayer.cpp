@@ -5,14 +5,48 @@
 
 MainLayer::MainLayer(unsigned int w, unsigned int h)
 :   m_framebuffer(w, h),
+    m_intermediate(w, h),
     m_cam(w, h, 45),
     m_shader("shaders/vertex.glsl", "shaders/fragment.glsl"),
+    m_post_process("shaders/post_process_vert.glsl", "shaders/post_process_frag.glsl"),
     m_backpack("res/models/backpack/backpack.obj", m_texture_manager),
     light_dir(1, 1, 1),
     scene_focused(false),
     m_running(true)
 {
 
+    //post process setup
+    float data[]  {
+        //pos   uv
+        -1, -1, 0, 0,
+        -1, 1,  0, 1,
+        1, 1,   1, 1,
+
+        1, 1,   1, 1,
+        1, -1,  1, 0,
+        -1, -1, 0, 0,
+
+    };
+
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    m_post_process.bind();
+    m_post_process.set_uniform("u_frame", 0);
+    glUseProgram(0);
 }
 
 void MainLayer::on_update(float dt)
@@ -26,6 +60,9 @@ void MainLayer::on_render()
 
     ImVec2 framebuffer_size{(float)m_framebuffer.get_width(), (float)m_framebuffer.get_height()};
 
+
+    ImGui::ShowDemoWindow();
+    //ImGui::ShowStyleSelector();
 
     ImGui::Begin("Render settings");
     ImGui::DragFloat3("Light dir", glm::value_ptr(light_dir), 0.01, -1, 1);
@@ -56,10 +93,10 @@ void MainLayer::on_render()
         MAIN SCENE RENDER
     */
 
-    m_framebuffer.bind();
+    m_intermediate.bind();
     glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glEnable(GL_DEPTH_TEST);
 
     // render the loaded model
     glm::mat4 model = glm::mat4(1.0f);
@@ -78,8 +115,25 @@ void MainLayer::on_render()
     m_shader.set_uniform("u_light_dir", light_dir_n);
     m_backpack.Draw(m_shader);
 
+    /*
+        post process
+    */
+
+    m_framebuffer.bind();
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    m_post_process.bind();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_intermediate.get_texture_handle());
+
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
     glBindVertexArray(0);
     glUseProgram(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /*
         Main scene window render
@@ -106,4 +160,5 @@ void MainLayer::resize(unsigned int w, unsigned int h)
     glViewport(0, 0, w, h);
     m_cam.update_proj(w, h);
     m_framebuffer.resize(w, h);
+    m_intermediate.resize(w, h);
 }

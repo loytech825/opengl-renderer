@@ -10,7 +10,7 @@ MainLayer::MainLayer(unsigned int w, unsigned int h)
     m_shader("shaders/vertex.glsl", "shaders/fragment.glsl"),
     m_post_process("shaders/post_process_vert.glsl", "shaders/post_process_frag.glsl"),
     m_backpack("res/models/backpack/backpack.obj", m_texture_manager),
-    light_dir(1, 1, 1),
+    light_dir(0, 0, -1),
     scene_focused(false),
     m_running(true)
 {
@@ -61,12 +61,14 @@ void MainLayer::on_render()
     ImVec2 framebuffer_size{(float)m_framebuffer.get_width(), (float)m_framebuffer.get_height()};
 
 
-    ImGui::ShowDemoWindow();
+    //ImGui::ShowDemoWindow();
     //ImGui::ShowStyleSelector();
 
     ImGui::Begin("Render settings");
     ImGui::DragFloat3("Light dir", glm::value_ptr(light_dir), 0.01, -1, 1);
 
+    ImGui::SeparatorText("Base image");
+    //ImGui::Text("Base image");
     const char* choices[] = {"Normal render", "Normals", "Frag to cam", "Frag to light", "Reflection", "Specular"};
     if(ImGui::BeginCombo("##combo", choices[(int)render_choice])){
 

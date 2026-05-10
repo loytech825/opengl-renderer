@@ -12,7 +12,9 @@ MainLayer::MainLayer(unsigned int w, unsigned int h)
     m_backpack("res/models/backpack/backpack.obj", m_texture_manager),
     light_dir(0, 0, -1),
     scene_focused(false),
-    m_running(true)
+    m_running(true),
+    m_base_render_choice(0),
+    m_post_render_choice(0)
 {
 
     //post process setup
@@ -67,21 +69,42 @@ void MainLayer::on_render()
     ImGui::Begin("Render settings");
     ImGui::DragFloat3("Light dir", glm::value_ptr(light_dir), 0.01, -1, 1);
 
+    //=====================================================================================================================
+    //                                          BASE IMAGE OPTIONS
+    //=====================================================================================================================
     ImGui::SeparatorText("Base image");
-    //ImGui::Text("Base image");
     const char* choices[] = {"Normal render", "Normals", "Frag to cam", "Frag to light", "Reflection", "Specular"};
-    if(ImGui::BeginCombo("##combo", choices[(int)render_choice])){
+    if(ImGui::BeginCombo("##base_render", choices[m_base_render_choice])){
 
         for(int i = 0; i < 6; i++)
         {
-            bool is_selected = render_choice == (float)i;
+            bool is_selected = (m_base_render_choice == i);
             if(ImGui::Selectable(choices[i], is_selected))
-                render_choice = (float)i;
+                m_base_render_choice = i;
             if(is_selected)
                 ImGui::SetItemDefaultFocus();
         }
 
         ImGui::EndCombo();
+    }
+
+    //=====================================================================================================================
+    //                                          POST PROCESS OPTIONS
+    //=====================================================================================================================
+    ImGui::SeparatorText("Post process");
+    const char* post_choices[] = {"None", "Inverse", "Grayscale Average", "Grayscale Corrected", "Kernel Effect"};
+    if(ImGui::BeginCombo("##post_render", post_choices[m_post_render_choice]))
+    {
+    for(int i = 0; i < 5; i++)
+        {
+            bool is_selected = (m_post_render_choice == i);
+            if(ImGui::Selectable(post_choices[i], is_selected))
+                m_post_render_choice = i;
+            if(is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+
+        ImGui::EndCombo();  
     }
     ImGui::End();
 
@@ -91,9 +114,9 @@ void MainLayer::on_render()
     m_texture_manager.draw_info_window();
 
 
-    /*
-        MAIN SCENE RENDER
-    */
+    //=====================================================================================================================
+    //                                              MAIN SCENE RENDER
+    //=====================================================================================================================
 
     m_intermediate.bind();
     glClearColor(0.f, 0.f, 0.f, 1.0f);
@@ -112,20 +135,21 @@ void MainLayer::on_render()
 
     m_shader.set_uniform("u_proj_view", m_cam.get_proj_x_view());
     m_shader.set_uniform("u_camera_pos", m_cam.get_pos());
-    m_shader.set_uniform("u_choose_render", render_choice);
+    m_shader.set_uniform("u_choose_render", m_base_render_choice);
     glm::vec3 light_dir_n = glm::normalize(light_dir);
     m_shader.set_uniform("u_light_dir", light_dir_n);
     m_backpack.Draw(m_shader);
 
-    /*
-        post process
-    */
+    //=====================================================================================================================
+    //                                               POST PROCESS
+    //=====================================================================================================================
 
     m_framebuffer.bind();
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     m_post_process.bind();
+    m_post_process.set_uniform("u_post_render_choice", m_post_render_choice);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_intermediate.get_texture_handle());
@@ -137,9 +161,9 @@ void MainLayer::on_render()
     glUseProgram(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    /*
-        Main scene window render
-    */
+    //=====================================================================================================================
+    //                                      MAIN SCENE IMGUI WINDOW RENDER
+    //=====================================================================================================================
     ImGui::SetNextWindowSize(framebuffer_size, ImGuiCond_FirstUseEver);
     ImGui::Begin("Scene");
 

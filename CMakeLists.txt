@@ -21,6 +21,9 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb_image)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/imgui)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Assimp)
 
+#some weird edge case in assimp requires this line
+target_compile_options(assimp PRIVATE -Wno-error=unused-but-set-variable)
+
 file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/**" )
 #file(GLOB_RECURSE INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/include/**")
 #file(GLOB_RECURSE IMGUI_SRC "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/imgui/*.cpp")

@@ -1,0 +1,15 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/maticbratina/code/opengl-renderer/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/glm/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/GLFW3/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/GLFW3/src/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/glad/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/stb_image/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/imgui/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/Assimp/cmake_install.cmake",
+		"/home/maticbratina/code/opengl-renderer/thirdparty/Assimp/code/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

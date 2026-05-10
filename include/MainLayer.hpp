@@ -38,7 +38,8 @@ private:
 
     Model m_backpack;
 
-    float render_choice;
+    int m_base_render_choice;
+    int m_post_render_choice;
     glm::vec3 light_dir;
 
     bool scene_focused;

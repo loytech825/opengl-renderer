@@ -19,7 +19,7 @@ uniform sampler2D u_texture_diffuse0;
 uniform sampler2D u_texture_specular0;
 uniform sampler2D u_texture_normal0;
 
-uniform float u_choose_render;
+uniform int u_choose_render;
 
 //PHONG LIGHTING
 vec3 light_color = vec3(1, 1, 1);
@@ -71,17 +71,17 @@ void main()
    vec3 result;
 
    //different rendering modes
-   if(u_choose_render == 0.0f)
+   if(u_choose_render == 0)
       result = (ambient + diffuse + specular) * object_color;
-   else if (u_choose_render == 1.0f)
+   else if (u_choose_render == 1)
       result = fs_in.TBN_inv * texture_normal;
-   else if (u_choose_render == 2.0f)
+   else if (u_choose_render == 2)
       result = frag_to_cam;
-   else if (u_choose_render == 3.0f)
+   else if (u_choose_render == 3)
       result = frag_to_light;
-   else if(u_choose_render == 4.0f)
+   else if(u_choose_render == 4)
       result = reflected_light;
-   else if(u_choose_render == 5.0f)
+   else if(u_choose_render == 5)
       result = specular_base;
 
    FragColor = vec4(result, 1);

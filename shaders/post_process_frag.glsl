@@ -4,6 +4,7 @@ out vec4 FragColor;
 in vec2 tex_coords;
 
 uniform sampler2D u_frame;
+uniform int u_post_render_choice;
 
 vec4 get_color() { return texture(u_frame, tex_coords); }
 
@@ -77,4 +78,25 @@ void main()
     //FragColor = grayscale_corrected();
     //regular render
     //FragColor = get_color();
+
+    if(u_post_render_choice == 0)
+    {
+        FragColor = get_color();
+    }
+    else if(u_post_render_choice == 1)
+    {
+        FragColor = inverse_color();
+    }
+    else if(u_post_render_choice == 2)
+    {
+        FragColor = grayscale_average();
+    }
+    else if(u_post_render_choice == 3)
+    {
+        FragColor = grayscale_corrected();
+    }
+    else if(u_post_render_choice == 4)
+    {
+        FragColor = kernel_effect();
+    }
 }

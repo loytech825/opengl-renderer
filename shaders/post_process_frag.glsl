@@ -1,10 +1,14 @@
 #version 330 core
 out vec4 FragColor;
 
+in vec4 gl_FragCoord;
+
 in vec2 tex_coords;
 
 uniform sampler2D u_frame;
 uniform int u_post_render_choice;
+
+const float GAMMA = 2.2f;
 
 vec4 get_color() { return texture(u_frame, tex_coords); }
 
@@ -74,29 +78,34 @@ vec4 kernel_effect()
 
 void main()
 {
-    FragColor = kernel_effect();
-    //FragColor = grayscale_corrected();
-    //regular render
-    //FragColor = get_color();
+    vec4 color = vec4(0);
 
     if(u_post_render_choice == 0)
     {
-        FragColor = get_color();
+        color = get_color();
     }
     else if(u_post_render_choice == 1)
     {
-        FragColor = inverse_color();
+        color = inverse_color();
     }
     else if(u_post_render_choice == 2)
     {
-        FragColor = grayscale_average();
+        color = grayscale_average();
     }
     else if(u_post_render_choice == 3)
     {
-        FragColor = grayscale_corrected();
+        color = grayscale_corrected();
     }
     else if(u_post_render_choice == 4)
     {
-        FragColor = kernel_effect();
+        color = kernel_effect();
     }
+
+
+    //gamma correction
+    vec4 gamma_corrected = vec4(pow(vec3(color), vec3(1.0f/GAMMA)), 1.0);
+
+    FragColor = gamma_corrected;
+    //vec4 raw = get_color(); 
+    //FragColor = (gl_FragCoord.y>200) ? gamma_corrected : raw;//vec4(color, 1.0f);//
 }

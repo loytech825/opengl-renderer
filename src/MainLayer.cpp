@@ -141,10 +141,10 @@ void MainLayer::on_render()
     //                                          BASE IMAGE OPTIONS
     //=====================================================================================================================
     ImGui::SeparatorText("Base image");
-    const char* choices[] = {"Normal render", "Normals", "Frag to cam", "Frag to light", "Reflection", "Specular"};
+    const char* choices[] = {"Phong", "Blinn-Phong", "Normals", "Frag to cam", "Frag to light", "Reflection", "Specular"};
     if(ImGui::BeginCombo("##base_render", choices[m_base_render_choice])){
 
-        for(int i = 0; i < 6; i++)
+        for(int i = 0; i < 7; i++)
         {
             bool is_selected = (m_base_render_choice == i);
             if(ImGui::Selectable(choices[i], is_selected))
@@ -163,7 +163,7 @@ void MainLayer::on_render()
     const char* post_choices[] = {"None", "Inverse", "Grayscale Average", "Grayscale Corrected", "Kernel Effect"};
     if(ImGui::BeginCombo("##post_render", post_choices[m_post_render_choice]))
     {
-    for(int i = 0; i < 5; i++)
+        for(int i = 0; i < 5; i++)
         {
             bool is_selected = (m_post_render_choice == i);
             if(ImGui::Selectable(post_choices[i], is_selected))

@@ -69,7 +69,9 @@ Texture TextureManager::load_texture(const std::string &path, TextureType type)
     unsigned char *data = stbi_load(std::filesystem::path(path).c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        //we need to change our texture to SRGB if out texture is image data
+        GLint internal_format = (type==DIFFUSE) ? GL_SRGB : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         texture.W = width;
         texture.H = height; 
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -127,7 +129,9 @@ Cubemap TextureManager::load_cubemap(const std::vector<std::string>& paths)
 
         if(data)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            //image needs to go to srgb
+            //SRGB effectively does pixel^(gamma)
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         }
         else
         {

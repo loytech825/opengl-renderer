@@ -31,7 +31,6 @@ float diffuse_strength = 1.f;
 Lighting is done in tangent space
 Current model - Phong
 */
-
 void main()
 {    
    vec3 object_color = texture(u_texture_diffuse0, fs_in.tex_coords).xyz;
@@ -61,28 +60,48 @@ void main()
    vec3 specular_base = texture(u_texture_specular0, fs_in.tex_coords).xyz;
    vec3 frag_to_cam = normalize(fs_in.tangent_camera_pos - fs_in.tangent_frag_pos);
 
+   //==================================
+   //             PHONG     
+   //==================================
    //reflect need incident vector and so we need the -
    //incident vector = from light to frag
    vec3 reflected_light = reflect(-frag_to_light, texture_normal);
 
    float spec = pow(max(dot(frag_to_cam, reflected_light), 0.0f), 32);
    vec3 specular = spec * specular_base * light_color;
-   //--------------------------------------------------------------------------------
+   
+   //==================================
+   //         BLINN-PHONG     
+   //==================================
+
+   //here we calculate the halfway vector instead of reflection and compare it to te normal
+   vec3 halfway = normalize(frag_to_cam + frag_to_light);
+
+   float blinn_spec = pow(max(dot(halfway, texture_normal), 0.0f), 128);
+   vec3 blinn_specular = blinn_spec * specular_base * light_color;
+
    vec3 result;
 
    //different rendering modes
    if(u_choose_render == 0)
+      //PHONG
       result = (ambient + diffuse + specular) * object_color;
-   else if (u_choose_render == 1)
-      result = fs_in.TBN_inv * texture_normal;
+   if(u_choose_render == 1)
+      //BLINN-PHONG
+      result = (ambient + diffuse + blinn_specular) * object_color;
    else if (u_choose_render == 2)
-      result = frag_to_cam;
+      result = fs_in.TBN_inv * texture_normal;
    else if (u_choose_render == 3)
+      result = frag_to_cam;
+   else if (u_choose_render == 4)
       result = frag_to_light;
-   else if(u_choose_render == 4)
-      result = reflected_light;
    else if(u_choose_render == 5)
+      result = reflected_light;
+   else if(u_choose_render == 6)
       result = specular_base;
 
    FragColor = vec4(result, 1);
+
+   //vec3 color = vec3(((gl_FragCoord.x>400) ? 1:0.5), 0, 0);
+   //FragColor = vec4(color, 1.0);
 }

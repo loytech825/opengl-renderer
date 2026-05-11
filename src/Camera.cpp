@@ -26,6 +26,11 @@ glm::mat4 Camera::get_proj_x_view()
     return proj * view;
 }
 
+glm::mat4 Camera::get_proj_x_view_no_translation()
+{
+    return proj * glm::mat4(glm::mat3(view));
+}
+
 void Camera::update_proj(int screen_w, int screen_h, float fov)
 {
     float ratio = (float)screen_w/(float)screen_h;

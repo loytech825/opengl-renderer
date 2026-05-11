@@ -9,6 +9,8 @@ public:
 
     glm::mat4 get_proj_x_view();
 
+    glm::mat4 get_proj_x_view_no_translation();
+
     void update_proj(int screen_w, int screen_h, float fov = 45.f);
     void update_view();
 

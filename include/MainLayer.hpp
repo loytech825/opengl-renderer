@@ -24,9 +24,11 @@ private:
     void resize(unsigned int w, unsigned int h);
 
     ShaderProgram m_shader;
-    ShaderProgram m_post_process;
+    ShaderProgram m_post_process_shader;
+    ShaderProgram m_cubemap_shader;
 
     TextureManager m_texture_manager;
+    Cubemap m_cubemap;
 
     Framebuffer m_framebuffer;
     //before post process
@@ -45,6 +47,10 @@ private:
     bool scene_focused;
 
     //post process
-    unsigned int VBO;
-    unsigned int VAO;
+    unsigned int m_post_VBO;
+    unsigned int m_post_VAO;
+
+    //cubemap
+    unsigned int m_cubemap_VBO;
+    unsigned int m_cubemap_VAO;
 };

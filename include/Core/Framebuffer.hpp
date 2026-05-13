@@ -28,6 +28,17 @@ public:
     Framebuffer(const unsigned int W, const unsigned int H);
 
     /*
+        @brief Initializes the framebuffer object with multisampling
+        @param W width in pixels
+        @param H height in pixels
+        @param samples number of samples/pixel
+        @note Attempts to create a framebuffer object and initilaize it with a texture (color buffer)
+            and render buffer (depth 24 + stencil 8). The success of initialization can be polled with `check_status()`
+    */
+    Framebuffer(const unsigned int W, const unsigned int H, const unsigned int samples);
+
+
+    /*
         @brief Frees memory and handles
     */
     ~Framebuffer();
@@ -63,6 +74,16 @@ public:
         @brief Binds the framebuffer
     */
     void bind();
+
+    /*
+        @bried Binds the framebuffer @ GL_READ_FRAMEBUFFER
+    */
+    void bind_as_read();
+
+    /*
+        @bried Binds the framebuffer @ GL_DRAW_FRAMEBUFFER
+    */
+    void bind_as_draw();
 
 private:
     unsigned int width;

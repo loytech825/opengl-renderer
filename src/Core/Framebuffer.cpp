@@ -38,6 +38,37 @@ Framebuffer::Framebuffer(const unsigned int W, const unsigned int H)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 }
 
+Framebuffer::Framebuffer(const unsigned int W, const unsigned int H, unsigned int samples)
+:   width(W),
+    height(H)
+{
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    //attachments:
+    //texture (main color output)
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+
+    //allocate empty memory (not immutable, so we can resize) -> glTexStorage2D() is immutable8D56)
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, W, H, GL_TRUE);
+
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texture, 0);
+
+    //render object
+    glGenRenderbuffers(1, &RBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+
+    //32 bits, 24 for depth buffer 8 for stencil buffer
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, W, H);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+}
+
 Framebuffer::~Framebuffer()
 {
     glDeleteFramebuffers(1, &FBO);
@@ -45,7 +76,7 @@ Framebuffer::~Framebuffer()
     glDeleteRenderbuffers(1, &RBO);
 }
 
-inline GLenum Framebuffer::check_status()
+GLenum Framebuffer::check_status()
 {
     bind();
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -71,3 +102,7 @@ unsigned int Framebuffer::get_height() {return height;}
 unsigned int Framebuffer::get_texture_handle() {return texture;}
 
 void Framebuffer::bind() {glBindFramebuffer(GL_FRAMEBUFFER, FBO);}
+
+void Framebuffer::bind_as_read() {glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO);}
+
+void Framebuffer::bind_as_draw() {glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FBO);}

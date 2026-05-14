@@ -88,6 +88,10 @@ GLenum Framebuffer::check_status()
 
 void Framebuffer::resize(unsigned int W, unsigned int H)
 {
+
+    width = W;
+    height = H;
+    
     if(!samples){
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, W, H, 0, GL_RGB, GL_UNSIGNED_BYTE, __null);

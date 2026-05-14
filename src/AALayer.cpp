@@ -7,9 +7,12 @@
 AALayer::AALayer(unsigned int W, unsigned int H)
 
 :   m_base_shader("shaders/AA/vertex.glsl", "shaders/AA/fragment.glsl"),
+    m_side_by_side_shader("shaders/AA/side_by_side_vert.glsl", "shaders/AA/side_by_side_frag.glsl"),
     m_cam(W, H, 45),
     m_msaa_fb(W, H, 4),
-    m_output_fb(W, H)
+    m_output_fb(W, H),
+    m_intermediate_fb(W, H),
+    m_regular_fb(W, H)
 {
 
     float vertices[] = {
@@ -70,6 +73,39 @@ AALayer::AALayer(unsigned int W, unsigned int H)
     glBindVertexArray(0);
 
     glEnable(GL_DEPTH_TEST);
+
+    float data[]  {
+        //pos   uv
+        -1, -1, 0, 0,
+        -1, 1,  0, 1,
+        1, 1,   1, 1,
+
+        1, 1,   1, 1,
+        1, -1,  1, 0,
+        -1, -1, 0, 0,
+
+    };
+
+    glGenVertexArrays(1, &m_post_VAO);
+    glGenBuffers(1, &m_post_VBO);
+
+    glBindVertexArray(m_post_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_post_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    m_side_by_side_shader.bind();
+    m_side_by_side_shader.set_uniform("u_frame0", 0);
+    m_side_by_side_shader.set_uniform("u_frame1", 1);
+    glUseProgram(0);
 }
 
 void AALayer::on_update(float dt)
@@ -95,17 +131,55 @@ void AALayer::on_render()
     glUseProgram(0);
     glBindVertexArray(0);
 
-
     //==============================================================
-    //      BLIT TO OUTPUT BUFFER
+    //              BLIT TO INTERMEDIATE BUFFER
     //==============================================================
     m_msaa_fb.bind_as_read();
     unsigned int msaa_W = m_msaa_fb.get_width();
     unsigned int msaa_H = m_msaa_fb.get_height();
-    m_output_fb.bind_as_draw();
-    unsigned int out_W = m_output_fb.get_width();
-    unsigned int out_H = m_output_fb.get_height();
+    m_intermediate_fb.bind_as_draw();
+    unsigned int out_W = m_intermediate_fb.get_width();
+    unsigned int out_H = m_intermediate_fb.get_height();
     glBlitFramebuffer(0, 0, msaa_W, msaa_H, 0, 0, out_W, out_H, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    std::cout << "out_W: " << out_W << ", out_H: " << out_H << "\n";
+
+    //==============================================================
+    //              RENDER TO REGULAR FRAMEBUFFER
+    //==============================================================
+    m_regular_fb.bind();
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_base_shader.bind();
+    m_base_shader.set_uniform("u_proj_view", m_cam.get_proj_x_view());
+    glBindVertexArray(m_VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glUseProgram(0);
+    glBindVertexArray(0);
+
+    //==============================================================
+    //             RENDER AA AND REGULAR SIDE BY SIDE
+    //==============================================================
+    m_output_fb.bind();
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_side_by_side_shader.bind();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_intermediate_fb.get_texture_handle());
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_regular_fb.get_texture_handle());
+
+    m_side_by_side_shader.set_uniform("u_middle", (int)(out_W/2));
+
+    glBindVertexArray(m_post_VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glUseProgram(0);
+    glBindVertexArray(0);
 
     //==============================================================
     //             RENDER TO IMGUI WINDOW
@@ -135,6 +209,9 @@ void AALayer::resize(const unsigned int W, const unsigned int H)
 {
     glViewport(0, 0, W, H);
     m_cam.update_proj(W, H);
+
     m_msaa_fb.resize(W, H);
     m_output_fb.resize(W, H);
+    m_regular_fb.resize(W, H);
+    m_intermediate_fb.resize(W, H);
 }

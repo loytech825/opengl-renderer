@@ -46,7 +46,7 @@ public:
         @brief Polls for the status of the framebuffer, should return `GL_FRAMEBUFFER_COMPLETE` if everything went right
         @return GLenum code
     */
-    inline GLenum check_status();
+    GLenum check_status();
 
     /*
         @brief Resizes the framebuffer
@@ -91,5 +91,6 @@ private:
     unsigned int FBO;
     unsigned int texture;
     unsigned int RBO;
+    unsigned int samples;
 
 };

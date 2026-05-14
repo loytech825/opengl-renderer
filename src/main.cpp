@@ -19,9 +19,7 @@
 
 #include "AppLayer.hpp"
 #include "MainLayer.hpp"
-
-void scene_resize(int width, int height, CameraController& cam, Framebuffer& fbuffer);
-void processInput(GLFWwindow *window);
+#include <AALayer.hpp>
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -35,7 +33,7 @@ int main()
 
     if(!window) return -1;
     
-    std::unique_ptr<MainLayer> main_layer = std::make_unique<MainLayer>(SCR_WIDTH, SCR_HEIGHT);
+    std::unique_ptr<Core::AppLayer> layer = std::make_unique<AALayer>(SCR_WIDTH, SCR_HEIGHT);
 
     double dt = 0;
 
@@ -43,16 +41,16 @@ int main()
     //glDepthFunc(GL_LESS);
 
     std::cout << "starting loop!\n";
-    while (main_layer->is_running() && !glfwWindowShouldClose(window))
+    while (layer->is_running() && !glfwWindowShouldClose(window))
     {
         //while(auto err = glGetError());
         float now = glfwGetTime();
 
-        main_layer->on_update(dt);
+        layer->on_update(dt);
 
         Core::init_frame();
 
-        main_layer->on_render();
+        layer->on_render();
 
         Core::end_frame(window);
 

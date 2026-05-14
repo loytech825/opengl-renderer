@@ -20,5 +20,6 @@ public:
     virtual void on_update(float dt) = 0;
     virtual void on_render() = 0;
 
+    virtual bool is_running() = 0;
 };
 }

@@ -17,7 +17,7 @@ public:
     virtual void on_update(float dt) override;
     virtual void on_render() override;
 
-    bool is_running() {return m_running;}
+    bool is_running() override {return m_running;}
 
 private:
 
@@ -36,7 +36,6 @@ private:
     CameraController m_cam;
 
     bool m_running;
-
 
     Model m_backpack;
 

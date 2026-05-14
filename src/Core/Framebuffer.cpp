@@ -2,7 +2,8 @@
 
 Framebuffer::Framebuffer(const unsigned int W, const unsigned int H)
 :   width(W),
-    height(H)
+    height(H),
+    samples(0)
 {
     glGenFramebuffers(1, &FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -40,7 +41,8 @@ Framebuffer::Framebuffer(const unsigned int W, const unsigned int H)
 
 Framebuffer::Framebuffer(const unsigned int W, const unsigned int H, unsigned int samples)
 :   width(W),
-    height(H)
+    height(H),
+    samples(samples)
 {
     glGenFramebuffers(1, &FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -86,13 +88,24 @@ GLenum Framebuffer::check_status()
 
 void Framebuffer::resize(unsigned int W, unsigned int H)
 {
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, W, H, 0, GL_RGB, GL_UNSIGNED_BYTE, __null);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    if(!samples){
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, W, H, 0, GL_RGB, GL_UNSIGNED_BYTE, __null);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
-    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, W, H);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, W, H);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    }else
+    {
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, W, H, GL_TRUE);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH24_STENCIL8, W, H);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    }
 }
 
 unsigned int Framebuffer::get_width() {return width;}
